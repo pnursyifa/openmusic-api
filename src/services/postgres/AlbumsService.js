@@ -13,7 +13,7 @@ class AlbumsService {
     const id = `album-${randomId}`;
 
     const query = {
-      text: 'INSERT INTO albums VALUES($1, $2, ',
+      text: 'INSERT INTO albums VALUES($1, $2, $3) RETURNING id',
       values:[id, name, year],
     };
 
