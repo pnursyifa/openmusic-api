@@ -8,7 +8,7 @@ const AlbumsValidator = require('./validator/albums');
 const SongsValidator = require('./validator/songs');
 const ClientError = require('./exceptions/ClientError');
 
-const envFile = ProcessingInstruction.env.NODE_ENV === 'production' ? '.env' : '.dev.env';
+const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.dev.env';
 dotenv.config({ path: envFile });
 
 const init = async () => {
