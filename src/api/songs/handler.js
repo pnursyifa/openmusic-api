@@ -41,7 +41,7 @@ class SongsHandler {
     return {
       status: 'success',
       data: {
-        note,
+        song,
       },
     };
   }
@@ -50,7 +50,8 @@ class SongsHandler {
     this._validator.validateSongPayload(request.payload);
     const { id } = request.params;
 
-    await this._service.editSongById(id, request.payload);
+    const { title, year, genre, performer, duration = null, albumId = null } = request.payload;
+    await this._service.editSongById(id, { title, year, genre, performer, duration, albumId });
 
     return {
       status: 'success',

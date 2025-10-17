@@ -14,7 +14,7 @@ class SongsService {
     const id = `song-${randomId}`;
 
     const query = {
-      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURN id',
+      text: 'INSERT INTO songs VALUES($1, $2, $3, $4, $5, $6, $7) RETURNING id',
       values: [id, title, year, genre, performer, duration, albumId],
     };
 
@@ -28,8 +28,8 @@ class SongsService {
   }
 
   async getSongs() {
-    const result = await this._pool.query('SELECT * FROM songs');
-    return result.rows.map(mapSongsToModel);
+    const result = await this._pool.query('SELECT id, title, performer FROM songs');
+    return result.rows;
   }
 
   async getSongById(id) {
@@ -46,9 +46,9 @@ class SongsService {
     return result.rows.map(mapSongsToModel)[0];
   }
 
-  async editSongById(id, { title, year, genre, performer, duration = null, albumId = null }) {
+  async editSongById(id, { title, year, genre, performer, duration, albumId }) {
     const query = {
-      text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, albumId = $6 WHERE id = $7 RETURNING id',
+      text: 'UPDATE songs SET title = $1, year = $2, genre = $3, performer = $4, duration = $5, album_id = $6 WHERE id = $7 RETURNING id',
       values: [title, year, genre, performer, duration, albumId, id],
     };
 
