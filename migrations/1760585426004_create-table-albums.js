@@ -1,5 +1,3 @@
-export const shorthands = undefined;
-
 export const up = (pgm) => {
   pgm.createTable('albums', {
     id: {
@@ -7,7 +5,7 @@ export const up = (pgm) => {
       primaryKey: true,
     },
     name: {
-      type: 'TEXT',
+      type: 'VARCHAR(50)',
       notNull: true,
     },
     year: {
