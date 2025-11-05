@@ -34,6 +34,10 @@ const CollaborationsValidator = require('./validator/collaborations');
 const activities = require('./api/activities');
 const ActivitiesService = require('./services/postgres/ActivitiesService');
 
+const _exports = require('./api/exports');
+const ProducerService = require('./services/rabbitmq/ProducerService');
+const ExportsValidator = require('./validator/exports');
+
 const ClientError = require('./exceptions/ClientError');
 
 const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.dev.env';
@@ -141,6 +145,13 @@ const init = async () => {
       options: {
         activitiesService,
         playlistsService,
+      },
+    },
+    {
+      plugin: _exports,
+      options: {
+        service: ProducerService,
+        validator: ExportsValidator,
       },
     },
   ]);
