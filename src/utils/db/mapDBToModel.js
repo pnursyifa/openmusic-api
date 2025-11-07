@@ -17,6 +17,19 @@ const mapSongsToModel = ({
   albumId: album_id,
 });
 
+const mapAlbumsToModel = ({
+  id,
+  name,
+  year,
+  cover
+}) => ({
+  id,
+  name,
+  year,
+  coverUrl: cover
+});
+
 module.exports = {
   mapSongsToModel,
+  mapAlbumsToModel,
 };

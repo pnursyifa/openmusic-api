@@ -1,6 +1,7 @@
-const dotenv = require('dotenv');
 const Hapi = require('@hapi/hapi');
 const Jwt = require('@hapi/jwt');
+const Inert = require('@hapi/inert');
+const path = require('path');
 
 const songs = require('./api/songs');
 const SongsService = require('./services/postgres/SongsService');
@@ -38,12 +39,20 @@ const _exports = require('./api/exports');
 const ProducerService = require('./services/rabbitmq/ProducerService');
 const ExportsValidator = require('./validator/exports');
 
-const ClientError = require('./exceptions/ClientError');
+const uploads = require('./api/uploads');
+const StorageService = require('./services/storage/StorageService');
+const UploadsValidator = require('./validator/uploads');
 
-const envFile = process.env.NODE_ENV === 'production' ? '.env' : '.dev.env';
-dotenv.config({ path: envFile });
+const likes = require('./api/likes');
+const LikesService = require('./services/postgres/LikesService');
+
+const CacheService = require('./services/redis/CacheService');
+
+const ClientError = require('./exceptions/ClientError');
+const config = require('./utils/config');
 
 const init = async () => {
+  const cacheService = new CacheService();
   const albumsService = new AlbumsService();
   const songsService = new SongsService();
   const usersService = new UsersService();
@@ -52,10 +61,12 @@ const init = async () => {
   const playlistsService = new PlaylistsService(collaborationsService);
   const playlistSongsService = new PlaylistSongsService();
   const activitiesService = new ActivitiesService();
+  const storageService = new StorageService(path.resolve(__dirname, 'api/uploads/file/images'));
+  const likesService = new LikesService(cacheService);
 
   const server = Hapi.server({
-    port: process.env.PORT || 5000,
-    host: process.env.HOST || 'localhost',
+    port: config.app.port,
+    host: config.app.host,
     routes: {
       cors: {
         origin: ['*'],
@@ -67,15 +78,18 @@ const init = async () => {
     {
       plugin: Jwt,
     },
+    {
+      plugin: Inert,
+    },
   ]);
 
   server.auth.strategy('openmusicapi_jwt', 'jwt', {
-    keys: process.env.ACCESS_TOKEN_KEY,
+    keys: config.jwt.accessToken,
     verify: {
       aud: false,
       iss: false,
       sub: false,
-      maxAgeSec: process.env.ACCESS_TOKEN_AGE,
+      maxAgeSec: config.jwt.accessTokenAge,
     },
     validate: (artifacts) => ({
       isValid: true,
@@ -148,11 +162,27 @@ const init = async () => {
       },
     },
     {
+      plugin: uploads,
+      options: {
+        storageService,
+        albumsService,
+        validator: UploadsValidator,
+      }
+    },
+    {
       plugin: _exports,
       options: {
-        service: ProducerService,
+        exportsService: ProducerService,
+        playlistsService,
         validator: ExportsValidator,
       },
+    },
+    {
+      plugin: likes,
+      options: {
+        likesService,
+        albumsService
+      }
     },
   ]);
 
